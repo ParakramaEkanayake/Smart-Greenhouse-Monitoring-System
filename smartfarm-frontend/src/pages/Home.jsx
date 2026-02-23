@@ -50,9 +50,7 @@ function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-100 to-blue-100 p-8">
-      <h1 className="text-4xl font-bold text-center mb-10">
-        🌱 Smart Farm Live Dashboard
-      </h1>
+      
 
       <Dashboard data={data} history={history} />
     </div>
