@@ -1,26 +1,47 @@
 require("dotenv").config();
-const express = require("express");
-const http = require("http");
-const socketIo = require("socket.io");
-const cors = require("cors");
+const mqtt = require("mqtt");
+const mongoose = require("mongoose");
 
-const connectDB = require("./config/db");
-const sensorRoutes = require("./routes/sensorRoutes");
-const startMQTT = require("./mqtt/mqttClient");
+// Connect MongoDB
+mongoose.connect(process.env.MONGO_URI)
+.then(() => console.log("MongoDB Connected"))
+.catch(err => console.log(err));
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+// Create Schema
+const sensorSchema = new mongoose.Schema({
+  temperature: Number,
+  pressure: Number,
+  timestamp: {
+    type: Date,
+    default: Date.now
+  }
+});
 
-connectDB();
+const SensorData = mongoose.model("SensorData", sensorSchema);
 
-app.use("/api/data", sensorRoutes);
+// Connect MQTT
+const client = mqtt.connect(process.env.MQTT_BROKER);
 
-const server = http.createServer(app);
-const io = socketIo(server, { cors: { origin: "*" } });
+client.on("connect", () => {
+  console.log("MQTT Connected");
+  client.subscribe(process.env.MQTT_TOPIC);
+  console.log("Subscribed to topic:", process.env.MQTT_TOPIC);
+});
 
-startMQTT(io);
+// When message received
+client.on("message", async (topic, message) => {
+  try {
+    const data = JSON.parse(message.toString());
 
-server.listen(5000, () => {
-  console.log("Server running on port 5000");
+    const newData = new SensorData({
+      temperature: data.temperature,
+      pressure: data.pressure
+    });
+
+    await newData.save();
+    console.log("Data saved:", newData);
+
+  } catch (error) {
+    console.log("Error:", error.message);
+  }
 });
