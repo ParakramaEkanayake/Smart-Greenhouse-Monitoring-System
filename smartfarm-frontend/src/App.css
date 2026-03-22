@@ -1,50 +1,96 @@
 body {
-  background-color: #000000;
+  font-family: Arial, sans-serif;
+  background: #f5f7fa;
   margin: 0;
-  padding: 0;
 }
 
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+.dashboard-container {
+  padding: 30px;
+}
+
+.section-title {
+  margin-bottom: 15px;
+  color: #333;
+}
+
+/* STATUS SUMMARY */
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.status-card {
+  padding: 20px;
+  border-radius: 12px;
+  font-weight: bold;
   text-align: center;
-  background-color: #000000;
-  min-height: 100vh;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.green { background: #e6f7ed; color: #1b8a3e; }
+.yellow { background: #fff6e5; color: #b7791f; }
+.red { background: #fdecea; color: #c53030; }
+.blue { background: #e6f0ff; color: #1e40af; }
+
+/* ALERT */
+.alert-banner {
+  background: #fdecea;
+  border-left: 6px solid #c53030;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 30px;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* SENSOR CARDS */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.sensor-card {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+  position: relative;
 }
 
-.card {
-  padding: 2em;
+.sensor-card h4 {
+  margin: 0;
+  color: #666;
 }
 
-.read-the-docs {
-  color: #888;
+.sensor-card h2 {
+  margin: 10px 0;
+}
+
+.badge {
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+/* Status colors */
+.sensor-card.normal { border-top: 5px solid #1b8a3e; }
+.sensor-card.warning { border-top: 5px solid #b7791f; }
+.sensor-card.critical { border-top: 5px solid #c53030; }
+
+.badge.normal {
+  background: #e6f7ed;
+  color: #1b8a3e;
+}
+
+.badge.warning {
+  background: #fff6e5;
+  color: #b7791f;
+}
+
+.badge.critical {
+  background: #fdecea;
+  color: #c53030;
 }

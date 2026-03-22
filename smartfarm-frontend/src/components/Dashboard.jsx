@@ -1,354 +1,316 @@
 import { useState } from "react";
 import DashboardCard from "./DashboardCard";
 import Charts from "./Charts";
+import { checkSensorStatus } from "../utils/statusUtils";
 
-function Dashboard({ airData, soilData, airHistory, soilHistory }) {
-  const [activeSection, setActiveSection] = useState("sensors");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+function Dashboard({
+  airData,
+  soilData,
+  airHistory,
+  soilHistory,
+  thresholds,
+}) {
+  const [activeSection] = useState("sensors");
 
-  // Get previous values from air history
-  const getPreviousAirValue = (dataKey) => {
-    if (airHistory && airHistory.length > 1) {
-      return airHistory[airHistory.length - 2]?.[dataKey] || null;
+  const getPreviousAirValue = (key) => {
+    if (airHistory.length > 1) {
+      return airHistory[airHistory.length - 2][key];
     }
     return null;
   };
 
-  // Get previous values from soil history
-  const getPreviousSoilValue = (dataKey) => {
-    if (soilHistory && soilHistory.length > 1) {
-      return soilHistory[soilHistory.length - 2]?.[dataKey] || null;
+  const getPreviousSoilValue = (key) => {
+    if (soilHistory.length > 1) {
+      return soilHistory[soilHistory.length - 2][key];
     }
     return null;
   };
 
-  const navItemStyle = (isActive) => ({
-    padding: "16px 20px",
-    marginBottom: "12px",
-    fontSize: "14px",
-    fontWeight: "600",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
-    transition: "all 300ms ease",
-    background: isActive
-      ? "rgba(255, 255, 255, 0.3)"
-      : "rgba(255, 255, 255, 0.1)",
-    color: "#ffffff",
-    width: "100%",
-    textAlign: "left",
-    boxShadow: isActive ? "0 5px 15px rgba(16, 185, 129, 0.3)" : "none",
+  /* ✅ SENSOR LIST */
+  const sensors = [
+    {
+      name: "Temperature",
+      value: airData?.temperature_dht,
+      thresholds: thresholds.temperature,
+    },
+    {
+      name: "Humidity",
+      value: airData?.humidity,
+      thresholds: thresholds.humidity,
+    },
+    {
+      name: "CO₂",
+      value: airData?.co2_ppm,
+      thresholds: thresholds.co2,
+    },
+    {
+      name: "NH₃",
+      value: airData?.nh3_ppm,
+      thresholds: thresholds.nh3,
+    },
+    {
+      name: "Pressure",
+      value: airData?.pressure,
+      thresholds: thresholds.pressure,
+    },
+    {
+      name: "Soil Moisture",
+      value: soilData?.soilMoisture,
+      thresholds: thresholds.soilMoisture,
+    },
+  ];
+
+  /* ✅ GROUP SENSORS BY STATUS */
+  const statusGroups = {
+    normal: [],
+    warning: [],
+    critical: [],
+  };
+
+  sensors.forEach((sensor) => {
+    const status = checkSensorStatus(
+      Number(sensor.value),
+      sensor.thresholds
+    );
+
+    if (statusGroups[status]) {
+      statusGroups[status].push(sensor);
+    }
   });
 
   return (
-    <div
-      style={{
-        display: "flex",
-        minHeight: "100vh",
-        gap: "0",
-      }}
-    >
-      {/* Hamburger/Back Button */}
-      <button
-        onClick={() => setSidebarOpen(!sidebarOpen)}
+    <div>
+      {/* ✅ TITLE */}
+      <div
         style={{
-          position: "fixed",
-          left: sidebarOpen ? "210px" : "16px",
-          top: "24px",
-          zIndex: 1000,
-          width: "48px",
-          height: "48px",
-          background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-          border: "none",
-          borderRadius: "8px",
-          cursor: "pointer",
           display: "flex",
           alignItems: "center",
-          justifyContent: "center",
-          transition: "all 300ms ease",
-          boxShadow: "0 5px 15px rgba(16, 185, 129, 0.3)",
+          gap: "20px",
+          marginBottom: "30px",
+          paddingLeft: "70px",
         }}
-        title={sidebarOpen ? "Close Menu" : "Open Menu"}
       >
-        {sidebarOpen ? (
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#ffffff"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            style={{
-              transition: "transform 300ms ease",
-            }}
-          >
-            <path d="M19 12H5M12 19l-7-7 7-7" />
-          </svg>
-        ) : (
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "6px",
-              transition: "all 300ms ease",
-            }}
-          >
-            <div
-              style={{
-                width: "24px",
-                height: "3px",
-                background: "#ffffff",
-                borderRadius: "2px",
-                transition: "all 300ms ease",
-              }}
-            ></div>
-            <div
-              style={{
-                width: "24px",
-                height: "3px",
-                background: "#ffffff",
-                borderRadius: "2px",
-                transition: "all 300ms ease",
-              }}
-            ></div>
-            <div
-              style={{
-                width: "24px",
-                height: "3px",
-                background: "#ffffff",
-                borderRadius: "2px",
-                transition: "all 300ms ease",
-              }}
-            ></div>
-          </div>
-        )}
-      </button>
-
-      {/* Left Sidebar Navigation */}
-      {sidebarOpen && (
-        <div
+        <h1
           style={{
-            width: "200px",
-            background: "linear-gradient(180deg, #10b981 0%, #059669 100%)",
-            padding: "32px 16px",
-            boxShadow: "0 10px 30px rgba(16, 185, 129, 0.3)",
-            height: "100vh",
-            position: "fixed",
-            left: "0",
-            top: "0",
-            overflowY: "auto",
-            zIndex: 999,
+            fontSize: "36px",
+            fontWeight: "700",
+            margin: 0,
+            color: "#1f2937",
           }}
         >
-          <h3
-            style={{
-              fontSize: "18px",
-              fontWeight: "700",
-              color: "#ffffff",
-              marginBottom: "24px",
-              marginTop: "80px",
-              textAlign: "center",
-            }}
-          ></h3>
+          🌾 Smart Farm Dashboard
+        </h1>
+      </div>
 
-          <button
-            onClick={() => setActiveSection("sensors")}
-            style={navItemStyle(activeSection === "sensors")}
-            onMouseEnter={(e) => {
-              if (activeSection !== "sensors") {
-                e.target.style.background = "rgba(255, 255, 255, 0.15)";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (activeSection !== "sensors") {
-                e.target.style.background = "rgba(255, 255, 255, 0.1)";
-              }
-            }}
-          >
-            Live Sensor Data
-          </button>
+      {/* ✅ SYSTEM STATUS SUMMARY WITH HOVER */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: "20px",
+          marginBottom: "30px",
+        }}
+      >
+        <StatusBox
+          label="Normal"
+          sensors={statusGroups.normal}
+          color="#22c55e"
+        />
+        <StatusBox
+          label="Warning"
+          sensors={statusGroups.warning}
+          color="#f59e0b"
+        />
+        <StatusBox
+          label="Critical"
+          sensors={statusGroups.critical}
+          color="#ef4444"
+        />
+        <StatusBox
+          label="Sensors Online"
+          sensors={sensors}
+          color="#3b82f6"
+        />
+      </div>
 
-          <button
-            onClick={() => setActiveSection("charts")}
-            style={navItemStyle(activeSection === "charts")}
-            onMouseEnter={(e) => {
-              if (activeSection !== "charts") {
-                e.target.style.background = "rgba(255, 255, 255, 0.15)";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (activeSection !== "charts") {
-                e.target.style.background = "rgba(255, 255, 255, 0.1)";
-              }
-            }}
-          >
-            Historical Charts
-          </button>
+      {/* ✅ CRITICAL ALERT SECTION */}
+      {statusGroups.critical.length > 0 && (
+        <div
+          style={{
+            background: "#fee2e2",
+            border: "1px solid #fecaca",
+            padding: "20px",
+            borderRadius: "16px",
+            marginBottom: "30px",
+            color: "#991b1b",
+          }}
+        >
+          <h3 style={{ marginTop: 0 }}>
+            Critical Alert ({statusGroups.critical.length})
+          </h3>
+
+          {statusGroups.critical.map((sensor, index) => (
+            <p key={index} style={{ marginBottom: "8px" }}>
+              {sensor.name} is out of safe range.
+              Current Value: <strong>{sensor.value}</strong>
+            </p>
+          ))}
         </div>
       )}
 
-      {/* Main Content Area */}
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          gap: "48px",
-          marginLeft: sidebarOpen ? "200px" : "0",
-          padding: "80px 32px 32px 32px",
-          transition: "margin-left 300ms ease",
-        }}
-      >
-        {/* Dashboard Title */}
+      {/* ✅ SENSOR CARDS */}
+      {activeSection === "sensors" && (
         <div
           style={{
-            textAlign: "center",
-            marginBottom: "32px",
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: "24px",
           }}
         >
-          <h1
-            style={{
-              fontSize: "48px",
-              fontWeight: "800",
-              background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-              backgroundClip: "text",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              margin: "0",
-              letterSpacing: "2px",
-            }}
-          >
-            🌾 Smart Farm Dashboard
-          </h1>
-          <p
-            style={{
-              fontSize: "16px",
-              color: "#555555",
-              marginTop: "12px",
-              fontStyle: "italic",
-            }}
-          >
-            Real-time Sensor Monitoring & Historical Analytics
-          </p>
+          <DashboardCard
+            title="Temperature"
+            value={airData?.temperature_dht ?? "--"}
+            unit="°C"
+            prevValue={getPreviousAirValue("temperature")}
+            thresholds={thresholds.temperature}
+          />
+
+          <DashboardCard
+            title="Humidity"
+            value={airData?.humidity ?? "--"}
+            unit="%"
+            prevValue={getPreviousAirValue("humidity")}
+            thresholds={thresholds.humidity}
+          />
+
+          <DashboardCard
+            title="CO₂"
+            value={airData?.co2_ppm ?? "--"}
+            unit="ppm"
+            prevValue={getPreviousAirValue("co2")}
+            thresholds={thresholds.co2}
+          />
+
+          <DashboardCard
+            title="NH₃"
+            value={airData?.nh3_ppm ?? "--"}
+            unit="ppm"
+            prevValue={getPreviousAirValue("nh3")}
+            thresholds={thresholds.nh3}
+          />
+
+          <DashboardCard
+            title="Pressure"
+            value={airData?.pressure ?? "--"}
+            unit="hPa"
+            prevValue={getPreviousAirValue("pressure")}
+            thresholds={thresholds.pressure}
+          />
+
+          <DashboardCard
+            title="Soil Moisture"
+            value={soilData?.soilMoisture ?? "--"}
+            unit="%"
+            prevValue={getPreviousSoilValue("soilMoisture")}
+            thresholds={thresholds.soilMoisture}
+          />
         </div>
+      )}
 
-        {/* Sensor Cards Section */}
-        {activeSection === "sensors" && (
-          <div>
-            <h2
-              style={{
-                fontSize: "36px",
-                fontWeight: "700",
-                marginBottom: "32px",
-                color: "#1f2937",
-              }}
-            >
-              Live Sensor Data
-            </h2>
+      {activeSection === "charts" && (
+        <Charts airHistory={airHistory} soilHistory={soilHistory} />
+      )}
+    </div>
+  );
+}
 
+/* ✅ STATUS BOX WITH HOVER */
+function StatusBox({ label, sensors, color }) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: "white",
+        borderRadius: "16px",
+        padding: "20px",
+        boxShadow: "0 6px 20px rgba(0,0,0,0.05)",
+        borderTop: `5px solid ${color}`,
+        position: "relative",
+        cursor: "pointer",
+        transition: "all 0.3s ease",
+      }}
+    >
+      <h2
+        style={{
+          margin: 0,
+          fontSize: "32px",
+          fontWeight: "700",
+          color: color,
+        }}
+      >
+        {sensors.length}
+      </h2>
+
+      <p
+        style={{
+          marginTop: "6px",
+          fontWeight: "600",
+          color: "#6b7280",
+        }}
+      >
+        {label}
+      </p>
+
+      {/* ✅ GLASS HOVER POPUP */}
+      {hovered && sensors.length > 0 && (
+        <div
+          style={{
+            position: "absolute",
+            top: "110%",
+            left: 0,
+            width: "240px",
+            padding: "18px",
+            borderRadius: "16px",
+            backdropFilter: "blur(14px)",
+            WebkitBackdropFilter: "blur(14px)",
+            background: "rgba(255, 255, 255, 0.25)",
+            border: `1px solid rgba(255,255,255,0.4)`,
+            boxShadow: "0 12px 30px rgba(0,0,0,0.15)",
+            zIndex: 999,
+            animation: "fadeIn 0.2s ease-in-out",
+          }}
+        >
+          <h4
+            style={{
+              margin: "0 0 12px 0",
+              fontSize: "14px",
+              fontWeight: "700",
+              color: color,
+            }}
+          >
+            {label} Sensors
+          </h4>
+
+          {sensors.map((sensor, index) => (
             <div
+              key={index}
               style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-                gap: "32px",
-              }}
-            >
-              <DashboardCard
-                title="Temperature (DHT)"
-                value={airData?.temperature_dht ?? "--"}
-                unit="°C"
-                variant="blue"
-                prevValue={getPreviousAirValue("temperature")}
-              />
-
-              {/* <DashboardCard
-                title="Temperature (BMP)"
-                value={airData?.temperature_bmp ?? "--"}
-                unit="°C"
-                variant="blue"
-                prevValue={null}
-              /> */}
-
-              <DashboardCard
-                title="Humidity"
-                value={airData?.humidity ?? "--"}
-                unit="%"
-                variant="purple"
-                prevValue={getPreviousAirValue("humidity")}
-              />
-
-              <DashboardCard
-                title="CO₂"
-                value={airData?.co2_ppm ?? "--"}
-                unit="ppm"
-                variant="green"
-                prevValue={getPreviousAirValue("co2")}
-              />
-
-              <DashboardCard
-                title="NH₃"
-                value={airData?.nh3_ppm ?? "--"}
-                unit="ppm"
-                variant="orange"
-                prevValue={getPreviousAirValue("nh3")}
-              />
-
-              <DashboardCard
-                title="Pressure"
-                value={airData?.pressure ?? "--"}
-                unit="hPa"
-                variant="pink"
-                prevValue={getPreviousAirValue("pressure")}
-              />
-
-              {/* <DashboardCard
-                title="Air Quality"
-                value={airData?.air_quality_status ?? "--"}
-                unit=""
-                variant="red"
-                prevValue={null}
-              /> */}
-
-              <DashboardCard
-                title="Soil Moisture"
-                value={soilData?.soilMoisture ?? "--"}
-                unit="%"
-                variant="green"
-                prevValue={getPreviousSoilValue("soilMoisture")}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Charts Section */}
-        {activeSection === "charts" && (
-          <div>
-            <h2
-              style={{
-                fontSize: "36px",
-                fontWeight: "700",
-                marginBottom: "32px",
+                fontSize: "13px",
+                marginBottom: "8px",
                 color: "#1f2937",
+                display: "flex",
+                justifyContent: "space-between",
               }}
             >
-              Historical Data
-            </h2>
-
-            <div
-              style={{
-                background: "linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%)",
-                borderRadius: "24px",
-                padding: "32px",
-                boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
-              }}
-            >
-              <Charts airHistory={airHistory} soilHistory={soilHistory} />
+              <span>{sensor.name}</span>
+              <strong>{sensor.value}</strong>
             </div>
-          </div>
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
