@@ -2,14 +2,22 @@ import { useState } from "react";
 import DashboardCard from "./DashboardCard";
 import Charts from "./Charts";
 
-function Dashboard({ data, history }) {
+function Dashboard({ airData, soilData, airHistory, soilHistory }) {
   const [activeSection, setActiveSection] = useState("sensors");
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  // Get previous values from history
-  const getPreviousValue = (dataKey) => {
-    if (history && history.length > 1) {
-      return history[history.length - 2]?.[dataKey] || null;
+  // Get previous values from air history
+  const getPreviousAirValue = (dataKey) => {
+    if (airHistory && airHistory.length > 1) {
+      return airHistory[airHistory.length - 2]?.[dataKey] || null;
+    }
+    return null;
+  };
+
+  // Get previous values from soil history
+  const getPreviousSoilValue = (dataKey) => {
+    if (soilHistory && soilHistory.length > 1) {
+      return soilHistory[soilHistory.length - 2]?.[dataKey] || null;
     }
     return null;
   };
@@ -33,11 +41,13 @@ function Dashboard({ data, history }) {
   });
 
   return (
-    <div style={{
-      display: "flex",
-      minHeight: "100vh",
-      gap: "0",
-    }}>
+    <div
+      style={{
+        display: "flex",
+        minHeight: "100vh",
+        gap: "0",
+      }}
+    >
       {/* Hamburger/Back Button */}
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -61,7 +71,6 @@ function Dashboard({ data, history }) {
         title={sidebarOpen ? "Close Menu" : "Open Menu"}
       >
         {sidebarOpen ? (
-          // Back Arrow Icon
           <svg
             width="24"
             height="24"
@@ -78,61 +87,72 @@ function Dashboard({ data, history }) {
             <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
         ) : (
-          // Hamburger Icon
-          <div style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "6px",
-            transition: "all 300ms ease",
-          }}>
-            <div style={{
-              width: "24px",
-              height: "3px",
-              background: "#ffffff",
-              borderRadius: "2px",
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "6px",
               transition: "all 300ms ease",
-            }}></div>
-            <div style={{
-              width: "24px",
-              height: "3px",
-              background: "#ffffff",
-              borderRadius: "2px",
-              transition: "all 300ms ease",
-            }}></div>
-            <div style={{
-              width: "24px",
-              height: "3px",
-              background: "#ffffff",
-              borderRadius: "2px",
-              transition: "all 300ms ease",
-            }}></div>
+            }}
+          >
+            <div
+              style={{
+                width: "24px",
+                height: "3px",
+                background: "#ffffff",
+                borderRadius: "2px",
+                transition: "all 300ms ease",
+              }}
+            ></div>
+            <div
+              style={{
+                width: "24px",
+                height: "3px",
+                background: "#ffffff",
+                borderRadius: "2px",
+                transition: "all 300ms ease",
+              }}
+            ></div>
+            <div
+              style={{
+                width: "24px",
+                height: "3px",
+                background: "#ffffff",
+                borderRadius: "2px",
+                transition: "all 300ms ease",
+              }}
+            ></div>
           </div>
         )}
       </button>
 
       {/* Left Sidebar Navigation */}
       {sidebarOpen && (
-        <div style={{
-          width: "200px",
-          background: "linear-gradient(180deg, #10b981 0%, #059669 100%)",
-          padding: "32px 16px",
-          boxShadow: "0 10px 30px rgba(16, 185, 129, 0.3)",
-          height: "100vh",
-          position: "fixed",
-          left: "0",
-          top: "0",
-          overflowY: "auto",
-          zIndex: 999,
-        }}>
-          <h3 style={{
-            fontSize: "18px",
-            fontWeight: "700",
-            color: "#ffffff",
-            marginBottom: "24px",
-            marginTop: "80px",
-            textAlign: "center",
-          }}>
-          </h3>
+        <div
+          style={{
+            width: "200px",
+            background: "linear-gradient(180deg, #10b981 0%, #059669 100%)",
+            padding: "32px 16px",
+            boxShadow: "0 10px 30px rgba(16, 185, 129, 0.3)",
+            height: "100vh",
+            position: "fixed",
+            left: "0",
+            top: "0",
+            overflowY: "auto",
+            zIndex: 999,
+          }}
+        >
+          <h3
+            style={{
+              fontSize: "18px",
+              fontWeight: "700",
+              color: "#ffffff",
+              marginBottom: "24px",
+              marginTop: "80px",
+              textAlign: "center",
+            }}
+          ></h3>
+
           <button
             onClick={() => setActiveSection("sensors")}
             style={navItemStyle(activeSection === "sensors")}
@@ -149,6 +169,7 @@ function Dashboard({ data, history }) {
           >
             Live Sensor Data
           </button>
+
           <button
             onClick={() => setActiveSection("charts")}
             style={navItemStyle(activeSection === "charts")}
@@ -181,28 +202,34 @@ function Dashboard({ data, history }) {
         }}
       >
         {/* Dashboard Title */}
-        <div style={{
-          textAlign: "center",
-          marginBottom: "32px",
-        }}>
-          <h1 style={{
-            fontSize: "48px",
-            fontWeight: "800",
-            background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-            backgroundClip: "text",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            margin: "0",
-            letterSpacing: "2px",
-          }}>
+        <div
+          style={{
+            textAlign: "center",
+            marginBottom: "32px",
+          }}
+        >
+          <h1
+            style={{
+              fontSize: "48px",
+              fontWeight: "800",
+              background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+              backgroundClip: "text",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              margin: "0",
+              letterSpacing: "2px",
+            }}
+          >
             🌾 Smart Farm Dashboard
           </h1>
-          <p style={{
-            fontSize: "16px",
-            color: "#aaaaaa",
-            marginTop: "12px",
-            fontStyle: "italic",
-          }}>
+          <p
+            style={{
+              fontSize: "16px",
+              color: "#555555",
+              marginTop: "12px",
+              fontStyle: "italic",
+            }}
+          >
             Real-time Sensor Monitoring & Historical Analytics
           </p>
         </div>
@@ -215,11 +242,12 @@ function Dashboard({ data, history }) {
                 fontSize: "36px",
                 fontWeight: "700",
                 marginBottom: "32px",
-                color: "#ffffff",
+                color: "#1f2937",
               }}
             >
               Live Sensor Data
             </h2>
+
             <div
               style={{
                 display: "grid",
@@ -228,46 +256,67 @@ function Dashboard({ data, history }) {
               }}
             >
               <DashboardCard
-                title="Temperature"
-                value={data.temperature_dht}
+                title="Temperature (DHT)"
+                value={airData?.temperature_dht ?? "--"}
                 unit="°C"
                 variant="blue"
-                prevValue={getPreviousValue("temperature")}
+                prevValue={getPreviousAirValue("temperature")}
               />
+
+              {/* <DashboardCard
+                title="Temperature (BMP)"
+                value={airData?.temperature_bmp ?? "--"}
+                unit="°C"
+                variant="blue"
+                prevValue={null}
+              /> */}
+
               <DashboardCard
                 title="Humidity"
-                value={data.humidity}
+                value={airData?.humidity ?? "--"}
                 unit="%"
                 variant="purple"
-                prevValue={getPreviousValue("humidity")}
+                prevValue={getPreviousAirValue("humidity")}
               />
+
               <DashboardCard
                 title="CO₂"
-                value={data.co2_ppm}
+                value={airData?.co2_ppm ?? "--"}
                 unit="ppm"
                 variant="green"
-                prevValue={getPreviousValue("co2")}
+                prevValue={getPreviousAirValue("co2")}
               />
+
               <DashboardCard
                 title="NH₃"
-                value={data.nh3_ppm}
+                value={airData?.nh3_ppm ?? "--"}
                 unit="ppm"
                 variant="orange"
-                prevValue={getPreviousValue("nh3")}
+                prevValue={getPreviousAirValue("nh3")}
               />
+
               <DashboardCard
                 title="Pressure"
-                value={data.pressure}
+                value={airData?.pressure ?? "--"}
                 unit="hPa"
                 variant="pink"
-                prevValue={getPreviousValue("pressure")}
+                prevValue={getPreviousAirValue("pressure")}
               />
-              <DashboardCard
+
+              {/* <DashboardCard
                 title="Air Quality"
-                value={data.air_quality_status}
+                value={airData?.air_quality_status ?? "--"}
                 unit=""
                 variant="red"
                 prevValue={null}
+              /> */}
+
+              <DashboardCard
+                title="Soil Moisture"
+                value={soilData?.soilMoisture ?? "--"}
+                unit="%"
+                variant="green"
+                prevValue={getPreviousSoilValue("soilMoisture")}
               />
             </div>
           </div>
@@ -281,11 +330,12 @@ function Dashboard({ data, history }) {
                 fontSize: "36px",
                 fontWeight: "700",
                 marginBottom: "32px",
-                color: "#ffffff",
+                color: "#1f2937",
               }}
             >
               Historical Data
             </h2>
+
             <div
               style={{
                 background: "linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%)",
@@ -294,7 +344,7 @@ function Dashboard({ data, history }) {
                 boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
               }}
             >
-              <Charts history={history} />
+              <Charts airHistory={airHistory} soilHistory={soilHistory} />
             </div>
           </div>
         )}

@@ -9,7 +9,7 @@ import {
   Legend,
 } from "recharts";
 
-function Charts({ history }) {
+function Charts({ airHistory }) {
   const chartConfigs = [
     {
       title: "🌡️ Temperature Trends",
@@ -46,7 +46,31 @@ function Charts({ history }) {
       unit: "hPa",
       bgColor: "#ede9fe",
     },
+    {
+      title: "🌱 Soil Moisture Trends",
+      dataKey: "soilMoisture",
+      color: "#059669",
+      unit: "%",
+      bgColor: "#dcfce7",
+    },
   ];
+
+  // If no history yet
+  if (!airHistory || airHistory.length === 0) {
+    return (
+      <div
+        style={{
+          textAlign: "center",
+          padding: "40px",
+          fontSize: "18px",
+          color: "#666",
+          fontWeight: "600",
+        }}
+      >
+        No historical data available yet...
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
@@ -73,16 +97,23 @@ function Charts({ history }) {
           </h3>
 
           <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={history}>
+            <LineChart data={airHistory}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
+              
               <XAxis
                 dataKey="time"
                 tick={{ fontSize: 12, fill: "#666" }}
               />
+              
               <YAxis
                 tick={{ fontSize: 12, fill: "#666" }}
-                label={{ value: config.unit, angle: -90, position: "insideLeft" }}
+                label={{
+                  value: config.unit,
+                  angle: -90,
+                  position: "insideLeft",
+                }}
               />
+
               <Tooltip
                 contentStyle={{
                   backgroundColor: "#ffffff",
@@ -91,11 +122,15 @@ function Charts({ history }) {
                   boxShadow: "0 5px 15px rgba(0, 0, 0, 0.2)",
                 }}
                 formatter={(value) => [
-                  `${value?.toFixed(2)} ${config.unit}`,
+                  value !== null && value !== undefined && !isNaN(value)
+                    ? `${Number(value).toFixed(2)} ${config.unit}`
+                    : "No Data",
                   config.title,
                 ]}
               />
+
               <Legend />
+
               <Line
                 type="monotone"
                 dataKey={config.dataKey}
@@ -104,6 +139,7 @@ function Charts({ history }) {
                 dot={{ fill: config.color, r: 4 }}
                 activeDot={{ r: 6 }}
                 name={config.title}
+                connectNulls={false}
               />
             </LineChart>
           </ResponsiveContainer>

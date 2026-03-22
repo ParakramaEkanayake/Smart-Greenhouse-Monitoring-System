@@ -1,81 +1,89 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const mqtt = require("mqtt");
 const mongoose = require("mongoose");
+const http = require("http");
+const { Server } = require("socket.io");
+
+const AirSensorData = require("./models/AirSensorData");
+const SoilMoistureData = require("./models/SoilMoistureData");
+const startMQTT = require("./mqtt/mqttClient");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 // -------------------
+// Create HTTP + Socket.IO Server
+// -------------------
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+  },
+});
+
+// -------------------
 // MongoDB Connection
 // -------------------
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.log(err));
+  .catch(err => console.log("MongoDB Error:", err));
 
 // -------------------
-// Schema
+// Start MQTT Listener
 // -------------------
-const sensorSchema = new mongoose.Schema({
-  temperature_bmp: Number,
-  temperature_dht: Number,
-  humidity: Number,
-  pressure: Number,
-  co2_ppm: Number,
-  nh3_ppm: Number,
-  air_quality_status: String,
-  timestamp: {
-    type: Date,
-    default: Date.now
-  }
-});
-
-const SensorData = mongoose.model("SensorData", sensorSchema);
+startMQTT(io);
 
 // -------------------
-// MQTT Connection
+// API Routes - AIR SENSOR DATA
 // -------------------
-const client = mqtt.connect(process.env.MQTT_BROKER);
 
-client.on("connect", () => {
-  console.log("MQTT Connected");
-  client.subscribe(process.env.MQTT_TOPIC);
-  console.log("Subscribed to topic:", process.env.MQTT_TOPIC);
-});
-
-client.on("message", async (topic, message) => {
+// Get latest air sensor data
+app.get("/api/air/latest", async (req, res) => {
   try {
-    const data = JSON.parse(message.toString());
-
-    const newData = new SensorData({
-      temperature_bmp: data.temperature_bmp,
-      temperature_dht: data.temperature_dht,
-      humidity: data.humidity,
-      pressure: data.pressure,
-      co2_ppm: data.co2_ppm,
-      nh3_ppm: data.nh3_ppm,
-      air_quality_status: data.air_quality_status
-    });
-
-    await newData.save();
-    console.log("Data saved:", newData);
-
+    const latestAir = await AirSensorData.findOne().sort({ timestamp: -1 });
+    res.json(latestAir);
   } catch (error) {
-    console.log("Error:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get last 50 air sensor records
+app.get("/api/air/history", async (req, res) => {
+  try {
+    const airHistory = await AirSensorData.find()
+      .sort({ timestamp: -1 })
+      .limit(50);
+
+    res.json(airHistory);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
 // -------------------
-// API Routes
+// API Routes - SOIL MOISTURE DATA
 // -------------------
 
-// Get latest data
-app.get("/api/latest", async (req, res) => {
+// Get latest soil moisture data
+app.get("/api/soil/latest", async (req, res) => {
   try {
-    const latest = await SensorData.findOne().sort({ timestamp: -1 });
-    res.json(latest);
+    const latestSoil = await SoilMoistureData.findOne().sort({ timestamp: -1 });
+    res.json(latestSoil);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get last 50 soil moisture records
+app.get("/api/soil/history", async (req, res) => {
+  try {
+    const soilHistory = await SoilMoistureData.find()
+      .sort({ timestamp: -1 })
+      .limit(50);
+
+    res.json(soilHistory);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -86,6 +94,6 @@ app.get("/api/latest", async (req, res) => {
 // -------------------
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
