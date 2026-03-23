@@ -15,7 +15,7 @@ const defaultThresholds = {
   humidity: { min: 40, max: 70 },
   co2: { min: 0, max: 800 },
   nh3: { min: 0, max: 50 },
-  pressure: { min: 980, max: 1050 },
+  light: { min: 100, max: 1000 },   // ✅ ADD LIGHT
   soilMoisture: { min: 35, max: 65 },
 };
 
@@ -53,13 +53,17 @@ function Home() {
       setSoilData(soilLatest.data);
 
       setAirHistory(
-        airHist.data.reverse().map((item) => ({
-          temperature: item.temperature_dht,
-          humidity: item.humidity,
-          co2: item.co2_ppm,
-          nh3: item.nh3_ppm,
-          pressure: item.pressure,
-        }))
+        airHist.data
+          .slice()
+          .reverse()
+          .map((item) => ({
+            time: new Date(item.timestamp).toLocaleTimeString(),
+            temperature: item.temperature_dht,
+            humidity: item.humidity,
+            co2: item.co2_ppm,
+            nh3: item.nh3_ppm,
+            light: item.light_lux,   // ✅ ADD LIGHT
+          }))
       );
 
       setSoilHistory(

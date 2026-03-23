@@ -9,7 +9,7 @@ import {
   Legend,
 } from "recharts";
 
-function Charts({ airHistory }) {
+function Charts({ airHistory, soilHistory }) {
   const chartConfigs = [
     {
       title: "🌡️ Temperature Trends",
@@ -17,6 +17,7 @@ function Charts({ airHistory }) {
       color: "#ef4444",
       unit: "°C",
       bgColor: "#fee2e2",
+      source: "air",
     },
     {
       title: "💧 Humidity Trends",
@@ -24,6 +25,7 @@ function Charts({ airHistory }) {
       color: "#3b82f6",
       unit: "%",
       bgColor: "#dbeafe",
+      source: "air",
     },
     {
       title: "🌫️ CO₂ Trends",
@@ -31,6 +33,7 @@ function Charts({ airHistory }) {
       color: "#10b981",
       unit: "ppm",
       bgColor: "#d1fae5",
+      source: "air",
     },
     {
       title: "🔬 NH₃ Trends",
@@ -38,13 +41,15 @@ function Charts({ airHistory }) {
       color: "#f59e0b",
       unit: "ppm",
       bgColor: "#fef3c7",
+      source: "air",
     },
     {
-      title: "🔌 Pressure Trends",
-      dataKey: "pressure",
-      color: "#8b5cf6",
-      unit: "hPa",
-      bgColor: "#ede9fe",
+      title: "💡 Light Intensity Trends",
+      dataKey: "light",
+      color: "#eab308",
+      unit: "lux",
+      bgColor: "#fef9c3",
+      source: "air",
     },
     {
       title: "🌱 Soil Moisture Trends",
@@ -52,11 +57,14 @@ function Charts({ airHistory }) {
       color: "#059669",
       unit: "%",
       bgColor: "#dcfce7",
+      source: "soil",
     },
   ];
 
-  // If no history yet
-  if (!airHistory || airHistory.length === 0) {
+  if (
+    (!airHistory || airHistory.length === 0) &&
+    (!soilHistory || soilHistory.length === 0)
+  ) {
     return (
       <div
         style={{
@@ -74,77 +82,92 @@ function Charts({ airHistory }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
-      {chartConfigs.map((config, index) => (
-        <div
-          key={index}
-          style={{
-            background: config.bgColor,
-            borderRadius: "16px",
-            padding: "24px",
-            boxShadow: "0 5px 20px rgba(0, 0, 0, 0.1)",
-          }}
-        >
-          <h3
+      {chartConfigs.map((config, index) => {
+        const data =
+          config.source === "air" ? airHistory : soilHistory;
+
+        if (!data || data.length === 0) return null;
+
+        return (
+          <div
+            key={index}
             style={{
-              fontSize: "18px",
-              fontWeight: "700",
-              marginBottom: "16px",
-              color: config.color,
-              textAlign: "center",
+              background: config.bgColor,
+              borderRadius: "16px",
+              padding: "24px",
+              boxShadow: "0 5px 20px rgba(0, 0, 0, 0.1)",
             }}
           >
-            {config.title}
-          </h3>
+            <h3
+              style={{
+                fontSize: "18px",
+                fontWeight: "700",
+                marginBottom: "16px",
+                color: config.color,
+                textAlign: "center",
+              }}
+            >
+              {config.title}
+            </h3>
 
-          <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={airHistory}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
-              
-              <XAxis
-                dataKey="time"
-                tick={{ fontSize: 12, fill: "#666" }}
-              />
-              
-              <YAxis
-                tick={{ fontSize: 12, fill: "#666" }}
-                label={{
-                  value: config.unit,
-                  angle: -90,
-                  position: "insideLeft",
-                }}
-              />
+            <ResponsiveContainer width="100%" height={280}>
+              <LineChart data={data}>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="rgba(0,0,0,0.1)"
+                />
 
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#ffffff",
-                  border: `2px solid ${config.color}`,
-                  borderRadius: "8px",
-                  boxShadow: "0 5px 15px rgba(0, 0, 0, 0.2)",
-                }}
-                formatter={(value) => [
-                  value !== null && value !== undefined && !isNaN(value)
-                    ? `${Number(value).toFixed(2)} ${config.unit}`
-                    : "No Data",
-                  config.title,
-                ]}
-              />
+                <XAxis
+                  dataKey="time"
+                  tick={{ fontSize: 12, fill: "#666" }}
+                />
 
-              <Legend />
+                <YAxis
+                  tick={{ fontSize: 12, fill: "#666" }}
+                  label={{
+                    value: config.unit,
+                    angle: -90,
+                    position: "insideLeft",
+                  }}
+                />
 
-              <Line
-                type="monotone"
-                dataKey={config.dataKey}
-                stroke={config.color}
-                strokeWidth={3}
-                dot={{ fill: config.color, r: 4 }}
-                activeDot={{ r: 6 }}
-                name={config.title}
-                connectNulls={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      ))}
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#ffffff",
+                    border: `2px solid ${config.color}`,
+                    borderRadius: "8px",
+                    boxShadow:
+                      "0 5px 15px rgba(0, 0, 0, 0.2)",
+                  }}
+                  formatter={(value) => [
+                    value !== null &&
+                    value !== undefined &&
+                    !isNaN(value)
+                      ? `${Number(value).toFixed(2)} ${
+                          config.unit
+                        }`
+                      : "No Data",
+                    config.title,
+                  ]}
+                />
+
+                <Legend />
+
+                <Line
+                  type="monotone"
+                  dataKey={config.dataKey}
+                  stroke={config.color}
+                  strokeWidth={3}
+                  dot={{ fill: config.color, r: 4 }}
+                  activeDot={{ r: 6 }}
+                  name={config.title}
+                  connectNulls={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        );
+      })}
     </div>
   );
 }

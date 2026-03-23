@@ -1,6 +1,11 @@
 export function checkSensorStatus(value, thresholds) {
+  // ✅ Safety check
+  if (!thresholds || thresholds.min === undefined || thresholds.max === undefined) {
+    return "normal";
+  }
+
   if (value === "--" || value === null || value === undefined || isNaN(value)) {
-    return "unknown";
+    return "normal";
   }
 
   if (value < thresholds.min) return "critical";

@@ -6,11 +6,7 @@ const AirSensorSchema = new mongoose.Schema({
     default: "ESP32_001"
   },
 
-  temperature_bmp: {
-    type: Number,
-    required: true
-  },
-
+  // ✅ DHT11
   temperature_dht: {
     type: Number,
     required: true
@@ -21,17 +17,19 @@ const AirSensorSchema = new mongoose.Schema({
     required: true
   },
 
-  pressure: {
-    type: Number,
-    required: true
-  },
-
+  // ✅ MQ135
   co2_ppm: {
     type: Number,
     required: true
   },
 
   nh3_ppm: {
+    type: Number,
+    required: true
+  },
+
+  // ✅ BH1750 Light Sensor
+  light_lux: {
     type: Number,
     required: true
   },
