@@ -67,9 +67,13 @@ function Home() {
       );
 
       setSoilHistory(
-        soilHist.data.reverse().map((item) => ({
-          soilMoisture: item.soilMoisture,
-        }))
+        soilHist.data
+          .slice()
+          .reverse()
+          .map((item) => ({
+            time: new Date(item.timestamp).toLocaleTimeString(),  // ✅ ADD THIS
+            soilMoisture: item.soilMoisture,
+          }))
       );
     } catch (error) {
       console.error("Error fetching sensor data:", error);
