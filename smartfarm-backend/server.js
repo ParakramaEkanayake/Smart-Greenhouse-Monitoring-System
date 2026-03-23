@@ -1,3 +1,4 @@
+// server.js
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
@@ -9,6 +10,12 @@ const AirSensorData = require("./models/AirSensorData");
 const SoilMoistureData = require("./models/SoilMoistureData");
 const startMQTT = require("./mqtt/mqttClient");
 
+// Models
+const SensorData = require("./models/SensorData"); // existing BMP280/DHT
+const startSoilSensor2Mqtt = require("./mqtt/soilSensor2Mqtt"); // YL-69 MQTT client
+const soilSensor2Routes = require("./routes/soilSensor2Routes"); // YL-69 routes
+
+// Express setup
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -89,9 +96,10 @@ app.get("/api/soil/history", async (req, res) => {
   }
 });
 
-// -------------------
-// Start Server
-// -------------------
+// YL-69 soil sensor routes
+app.use("/api/soil-sensor-2", soilSensor2Routes);
+
+// --- Start server ---
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
