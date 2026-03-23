@@ -9,9 +9,20 @@
 }
 
 html, body, #root {
-  background-color: #020620;
-  color: #ffffff;
+  background-color: #f5f7fb;
+  color: #333;
   width: 100%;
   height: 100%;
   font-family: Calibri, 'Segoe UI', sans-serif;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
