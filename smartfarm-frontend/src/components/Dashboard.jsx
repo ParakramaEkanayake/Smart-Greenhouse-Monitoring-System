@@ -26,7 +26,7 @@ function Dashboard({
     return null;
   };
 
-  /* ✅ SENSOR LIST */
+  /* ✅ UPDATED SENSOR LIST (Pressure removed, Light added) */
   const sensors = [
     {
       name: "Temperature",
@@ -49,9 +49,9 @@ function Dashboard({
       thresholds: thresholds.nh3,
     },
     {
-      name: "Pressure",
-      value: airData?.pressure,
-      thresholds: thresholds.pressure,
+      name: "Light Intensity",
+      value: airData?.light_lux,
+      thresholds: thresholds.light,
     },
     {
       name: "Soil Moisture",
@@ -102,7 +102,7 @@ function Dashboard({
         </h1>
       </div>
 
-      {/* ✅ SYSTEM STATUS SUMMARY WITH HOVER */}
+      {/* ✅ SYSTEM STATUS SUMMARY */}
       <div
         style={{
           display: "grid",
@@ -146,7 +146,7 @@ function Dashboard({
           }}
         >
           <h3 style={{ marginTop: 0 }}>
-            Critical Alert ({statusGroups.critical.length})
+            🚨 Critical Alert ({statusGroups.critical.length})
           </h3>
 
           {statusGroups.critical.map((sensor, index) => (
@@ -200,11 +200,11 @@ function Dashboard({
           />
 
           <DashboardCard
-            title="Pressure"
-            value={airData?.pressure ?? "--"}
-            unit="hPa"
-            prevValue={getPreviousAirValue("pressure")}
-            thresholds={thresholds.pressure}
+            title="Light Intensity"
+            value={airData?.light_lux ?? "--"}
+            unit="lux"
+            prevValue={getPreviousAirValue("light")}
+            thresholds={thresholds.light}
           />
 
           <DashboardCard
@@ -264,7 +264,6 @@ function StatusBox({ label, sensors, color }) {
         {label}
       </p>
 
-      {/* ✅ GLASS HOVER POPUP */}
       {hovered && sensors.length > 0 && (
         <div
           style={{
@@ -280,7 +279,6 @@ function StatusBox({ label, sensors, color }) {
             border: `1px solid rgba(255,255,255,0.4)`,
             boxShadow: "0 12px 30px rgba(0,0,0,0.15)",
             zIndex: 999,
-            animation: "fadeIn 0.2s ease-in-out",
           }}
         >
           <h4
@@ -300,7 +298,6 @@ function StatusBox({ label, sensors, color }) {
               style={{
                 fontSize: "13px",
                 marginBottom: "8px",
-                color: "#1f2937",
                 display: "flex",
                 justifyContent: "space-between",
               }}
