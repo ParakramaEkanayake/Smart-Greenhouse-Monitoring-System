@@ -37,7 +37,7 @@ function Charts({ airHistory, soilHistory }) {
     },
     {
       title: "🔬 NH₃ Trends",
-      dataKey: "nh3",
+      // dataKey: "nh3",
       color: "#f59e0b",
       unit: "ppm",
       bgColor: "#fef3c7",

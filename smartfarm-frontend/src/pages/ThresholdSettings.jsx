@@ -9,7 +9,7 @@ function ThresholdSettings({ thresholds, onSave }) {
     temperature: "#3b82f6",
     humidity: "#8b5cf6",
     co2: "#10b981",
-    nh3: "#f59e0b",
+    // nh3: "#f59e0b",
     light: "#eab308",          // ✅ ADD LIGHT
     soilMoisture: "#059669",
   };
@@ -19,7 +19,7 @@ function ThresholdSettings({ thresholds, onSave }) {
     temperature: "🌡️ Temperature",
     humidity: "💧 Humidity",
     co2: "🌬️ CO₂",
-    nh3: "⚠️ NH₃",
+    // nh3: "⚠️ NH₃",
     light: "💡 Light Intensity",  // ✅ ADD LIGHT
     soilMoisture: "🌱 Soil Moisture",
   };
@@ -50,7 +50,7 @@ function ThresholdSettings({ thresholds, onSave }) {
       temperature: { min: 15, max: 30 },
       humidity: { min: 40, max: 70 },
       co2: { min: 0, max: 800 },
-      nh3: { min: 0, max: 50 },
+      // nh3: { min: 0, max: 50 },
       light: { min: 100, max: 1000 },   // ✅ ADD LIGHT DEFAULT
       soilMoisture: { min: 35, max: 65 },
     };

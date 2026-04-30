@@ -14,7 +14,7 @@ const defaultThresholds = {
   temperature: { min: 15, max: 30 },
   humidity: { min: 40, max: 70 },
   co2: { min: 0, max: 800 },
-  nh3: { min: 0, max: 50 },
+  // nh3: { min: 0, max: 50 },
   light: { min: 100, max: 1000 },   // ✅ ADD LIGHT
   soilMoisture: { min: 35, max: 65 },
 };
@@ -61,7 +61,7 @@ function Home() {
             temperature: item.temperature_dht,
             humidity: item.humidity,
             co2: item.co2_ppm,
-            nh3: item.nh3_ppm,
+            // nh3: item.nh3_ppm,
             light: item.light_lux,   // ✅ ADD LIGHT
           }))
       );

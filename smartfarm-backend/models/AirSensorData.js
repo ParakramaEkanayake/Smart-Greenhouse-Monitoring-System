@@ -23,10 +23,10 @@ const AirSensorSchema = new mongoose.Schema({
     required: true
   },
 
-  nh3_ppm: {
-    type: Number,
-    required: true
-  },
+  // nh3_ppm: {
+  //   type: Number,
+  //   required: true
+  // },
 
   // ✅ BH1750 Light Sensor
   light_lux: {

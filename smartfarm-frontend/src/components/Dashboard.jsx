@@ -43,11 +43,11 @@ function Dashboard({
       value: airData?.co2_ppm,
       thresholds: thresholds.co2,
     },
-    {
-      name: "NH₃",
-      value: airData?.nh3_ppm,
-      thresholds: thresholds.nh3,
-    },
+    // {
+    //   name: "NH₃",
+    //   value: airData?.nh3_ppm,
+    //   thresholds: thresholds.nh3,
+    // },
     {
       name: "Light Intensity",
       value: airData?.light_lux,
@@ -191,13 +191,13 @@ function Dashboard({
             thresholds={thresholds.co2}
           />
 
-          <DashboardCard
+          {/* <DashboardCard
             title="NH₃"
             value={airData?.nh3_ppm ?? "--"}
             unit="ppm"
             prevValue={getPreviousAirValue("nh3")}
             thresholds={thresholds.nh3}
-          />
+          /> */}
 
           <DashboardCard
             title="Light Intensity"

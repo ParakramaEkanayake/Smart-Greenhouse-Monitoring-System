@@ -34,7 +34,7 @@ const startMQTT = (socketIoInstance) => {
 
           // ✅ MQ135
           co2_ppm: data.co2_ppm,
-          nh3_ppm: data.nh3_ppm,
+          // nh3_ppm: data.nh3_ppm,
 
           // ✅ BH1750 Light Sensor
           light_lux: data.light_lux,
