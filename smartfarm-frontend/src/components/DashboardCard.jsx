@@ -12,6 +12,7 @@ function DashboardCard({
   variant = "blue",
   prevValue = null,
   thresholds,
+  isDarkMode = false,
 }) {
   const status = thresholds
     ? checkSensorStatus(Number(value), thresholds)
@@ -33,12 +34,18 @@ function DashboardCard({
     <motion.div
       whileHover={{ scale: 1.05 }}
       style={{
-        background: "#ffffff",
+        background: isDarkMode ? "#111827" : "#ffffff",
         borderRadius: "20px",
         padding: "28px",
         position: "relative",
-        boxShadow: `0 8px 25px ${statusColor}30`,
+        boxShadow: isDarkMode
+          ? `0 10px 30px rgba(0,0,0,0.38)`
+          : `0 8px 25px ${statusColor}30`,
         borderTop: `5px solid ${statusColor}`,
+        borderLeft: isDarkMode ? "1px solid #1f2937" : "none",
+        borderRight: isDarkMode ? "1px solid #1f2937" : "none",
+        borderBottom: isDarkMode ? "1px solid #1f2937" : "none",
+        color: isDarkMode ? "#e5e7eb" : "#111827",
       }}
     >
       {/* Status Badge */}
@@ -61,7 +68,7 @@ function DashboardCard({
       <h3
         style={{
           fontSize: "16px",
-          color: "#6b7280",
+          color: isDarkMode ? "#94a3b8" : "#6b7280",
           marginBottom: "10px",
         }}
       >
@@ -84,7 +91,7 @@ function DashboardCard({
         >
           {value}
         </p>
-        <span style={{ fontSize: "18px", color: "#6b7280" }}>
+        <span style={{ fontSize: "18px", color: isDarkMode ? "#94a3b8" : "#6b7280" }}>
           {unit}
         </span>
       </div>

@@ -1,7 +1,27 @@
 import { useState } from "react";
 
-function ThresholdSettings({ thresholds, onSave }) {
+const defaultFarmSettings = {
+  plantAgeDays: 1,
+  cropType: "Capsicum",
+};
+
+const cropOptions = [
+  { label: "Capsicum", value: "Capsicum" },
+  { label: "Scotch Bonet", value: "Scotch Bonnet" },
+  { label: "Gerkin", value: "Gerkin" },
+  { label: "Muriya", value: "Muriya" },
+];
+
+function ThresholdSettings({
+  thresholds,
+  onSave,
+  farmSettings = defaultFarmSettings,
+  onFarmSettingsSave,
+  isDarkMode = false,
+  theme,
+}) {
   const [localThresholds, setLocalThresholds] = useState(thresholds);
+  const [localFarmSettings, setLocalFarmSettings] = useState(farmSettings);
   const [saved, setSaved] = useState(false);
 
   /* ✅ UPDATED COLOR SCHEME */
@@ -39,7 +59,9 @@ function ThresholdSettings({ thresholds, onSave }) {
       "sensorThresholds",
       JSON.stringify(localThresholds)
     );
+    localStorage.setItem("farmSettings", JSON.stringify(localFarmSettings));
     onSave(localThresholds);
+    onFarmSettingsSave?.(localFarmSettings);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -55,10 +77,11 @@ function ThresholdSettings({ thresholds, onSave }) {
       soilMoisture: { min: 35, max: 65 },
     };
     setLocalThresholds(defaults);
+    setLocalFarmSettings(defaultFarmSettings);
   };
 
   return (
-    <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
+    <div style={{ maxWidth: "1000px", margin: "0 auto", color: theme?.text }}>
       {/* ✅ PAGE HEADER */}
       <div style={{ marginBottom: "32px" }}>
         <div
@@ -73,18 +96,122 @@ function ThresholdSettings({ thresholds, onSave }) {
               marginLeft: "70px",
               fontSize: "36px",
               fontWeight: "700",
-              color: "#1f2937",
+              color: theme?.text || "#1f2937",
             }}
           >
             ⚙ Threshold Settings
           </h1>
         </div>
-        <p style={{ color: "#6b7280", fontSize: "16px" }}>
+        <p style={{ color: theme?.muted || "#6b7280", fontSize: "16px" }}>
           Define safe operating ranges for each sensor.
         </p>
       </div>
 
       {/* ✅ THRESHOLD CARDS GRID */}
+      <div
+        style={{
+          background: theme?.cardBg || "white",
+          borderRadius: "16px",
+          padding: "24px",
+          boxShadow: isDarkMode
+            ? "0 10px 30px rgba(0,0,0,0.35)"
+            : "0 6px 20px rgba(0,0,0,0.06)",
+          border: isDarkMode ? "1px solid #1f2937" : "none",
+          marginBottom: "24px",
+        }}
+      >
+        <h3
+          style={{
+            margin: "0 0 20px 0",
+            fontSize: "18px",
+            fontWeight: "600",
+            color: theme?.text || "#1f2937",
+          }}
+        >
+          Plant Settings
+        </h3>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "20px",
+          }}
+        >
+          <div>
+            <label
+              style={{
+                display: "block",
+                fontSize: "13px",
+                fontWeight: "600",
+                color: theme?.muted || "#6b7280",
+                marginBottom: "8px",
+              }}
+            >
+              Plant Age (days)
+            </label>
+            <input
+              type="number"
+              min="1"
+              value={localFarmSettings.plantAgeDays}
+              onChange={(e) =>
+                setLocalFarmSettings({
+                  ...localFarmSettings,
+                  plantAgeDays: Math.max(1, Number(e.target.value)),
+                })
+              }
+              style={{
+                width: "100%",
+                padding: "12px 16px",
+                border: `2px solid ${theme?.cardBorder || "#e5e7eb"}`,
+                borderRadius: "10px",
+                fontSize: "16px",
+                background: theme?.inputBg || "#ffffff",
+                color: theme?.text || "#111827",
+              }}
+            />
+          </div>
+
+          <div>
+            <label
+              style={{
+                display: "block",
+                fontSize: "13px",
+                fontWeight: "600",
+                color: theme?.muted || "#6b7280",
+                marginBottom: "8px",
+              }}
+            >
+              Crop Type
+            </label>
+            <select
+              value={localFarmSettings.cropType}
+              onChange={(e) =>
+                setLocalFarmSettings({
+                  ...localFarmSettings,
+                  cropType: e.target.value,
+                })
+              }
+              style={{
+                width: "100%",
+                padding: "12px 16px",
+                border: `2px solid ${theme?.cardBorder || "#e5e7eb"}`,
+                borderRadius: "10px",
+                fontSize: "16px",
+                background: theme?.inputBg || "#ffffff",
+                color: theme?.text || "#111827",
+              }}
+            >
+              {cropOptions.map((crop) => (
+                <option key={crop.value} value={crop.value}>
+                  {crop.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
       <div
         style={{
           display: "grid",
@@ -97,11 +224,16 @@ function ThresholdSettings({ thresholds, onSave }) {
           <div
             key={sensor}
             style={{
-              background: "white",
+              background: theme?.cardBg || "white",
               borderRadius: "16px",
               padding: "24px",
-              boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
+              boxShadow: isDarkMode
+                ? "0 10px 30px rgba(0,0,0,0.35)"
+                : "0 6px 20px rgba(0,0,0,0.06)",
               borderLeft: `5px solid ${sensorColors[sensor]}`,
+              borderTop: isDarkMode ? "1px solid #1f2937" : "none",
+              borderRight: isDarkMode ? "1px solid #1f2937" : "none",
+              borderBottom: isDarkMode ? "1px solid #1f2937" : "none",
               transition: "all 0.2s ease",
             }}
           >
@@ -110,7 +242,7 @@ function ThresholdSettings({ thresholds, onSave }) {
                 margin: "0 0 20px 0",
                 fontSize: "18px",
                 fontWeight: "600",
-                color: "#1f2937",
+                color: theme?.text || "#1f2937",
               }}
             >
               {sensorNames[sensor]}
@@ -130,7 +262,7 @@ function ThresholdSettings({ thresholds, onSave }) {
                     display: "block",
                     fontSize: "13px",
                     fontWeight: "600",
-                    color: "#6b7280",
+                    color: theme?.muted || "#6b7280",
                     marginBottom: "8px",
                   }}
                 >
@@ -145,9 +277,11 @@ function ThresholdSettings({ thresholds, onSave }) {
                   style={{
                     width: "100%",
                     padding: "12px 16px",
-                    border: "2px solid #e5e7eb",
+                    border: `2px solid ${theme?.cardBorder || "#e5e7eb"}`,
                     borderRadius: "10px",
                     fontSize: "16px",
+                    background: theme?.inputBg || "#ffffff",
+                    color: theme?.text || "#111827",
                   }}
                 />
               </div>
@@ -159,7 +293,7 @@ function ThresholdSettings({ thresholds, onSave }) {
                     display: "block",
                     fontSize: "13px",
                     fontWeight: "600",
-                    color: "#6b7280",
+                    color: theme?.muted || "#6b7280",
                     marginBottom: "8px",
                   }}
                 >
@@ -174,9 +308,11 @@ function ThresholdSettings({ thresholds, onSave }) {
                   style={{
                     width: "100%",
                     padding: "12px 16px",
-                    border: "2px solid #e5e7eb",
+                    border: `2px solid ${theme?.cardBorder || "#e5e7eb"}`,
                     borderRadius: "10px",
                     fontSize: "16px",
+                    background: theme?.inputBg || "#ffffff",
+                    color: theme?.text || "#111827",
                   }}
                 />
               </div>

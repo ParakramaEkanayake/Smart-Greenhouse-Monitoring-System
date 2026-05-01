@@ -7,11 +7,13 @@ const { Server } = require("socket.io");
 
 const AirSensorData = require("./models/AirSensorData");
 const SoilMoistureData = require("./models/SoilMoistureData");
+const waterPredictionRoutes = require("./routes/waterPredictionRoutes");
 const startMQTT = require("./mqtt/mqttClient");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use("/api/water", waterPredictionRoutes);
 
 // -------------------
 // Create HTTP + Socket.IO Server

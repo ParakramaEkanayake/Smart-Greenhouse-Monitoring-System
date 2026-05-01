@@ -6,9 +6,13 @@ import { checkSensorStatus } from "../utils/statusUtils";
 function Dashboard({
   airData,
   soilData,
+  waterPrediction,
   airHistory,
   soilHistory,
   thresholds,
+  farmSettings,
+  isDarkMode = false,
+  theme,
 }) {
   const [activeSection] = useState("sensors");
 
@@ -78,6 +82,48 @@ function Dashboard({
     }
   });
 
+  const getThresholdMessage = (sensor) => {
+    const value = Number(sensor.value);
+    const { min, max } = sensor.thresholds || {};
+
+    if (value < min) return `${sensor.name} is below the minimum threshold.`;
+    if (value > max) return `${sensor.name} is above the maximum threshold.`;
+
+    return `${sensor.name} is out of safe range.`;
+  };
+
+  const renderAlertSection = ({ title, sensors, colors }) => {
+    if (sensors.length === 0) return null;
+
+    return (
+      <div
+        style={{
+          background: isDarkMode ? colors.darkBg : colors.bg,
+          border: `1px solid ${isDarkMode ? colors.darkBorder : colors.border}`,
+          padding: "20px",
+          borderRadius: "16px",
+          marginBottom: "30px",
+          color: isDarkMode ? colors.darkText : colors.text,
+        }}
+      >
+        <h3 style={{ marginTop: 0 }}>
+          {title} ({sensors.length})
+        </h3>
+
+        {sensors.map((sensor, index) => (
+          <p key={index} style={{ marginBottom: "8px" }}>
+            {getThresholdMessage(sensor)} Current Value:{" "}
+            <strong>{sensor.value}</strong>
+            {/* , Safe Range:{" "} */}
+            {/* <strong>
+              {sensor.thresholds.min} - {sensor.thresholds.max}
+            </strong> */}
+          </p>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div>
       {/* ✅ TITLE */}
@@ -95,10 +141,25 @@ function Dashboard({
             fontSize: "36px",
             fontWeight: "700",
             margin: 0,
-            color: "#1f2937",
+            color: theme?.text || "#1f2937",
+            display: "flex",
+            alignItems: "center",
+            gap: "14px",
           }}
         >
-          🌾 Smart Farm Dashboard
+          <img
+            src="/logo-removebg-preview.png"
+            alt="Smart Farm logo"
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+            }}
+            style={{
+              width: "60px",
+              height: "60px",
+              objectFit: "contain",
+            }}
+          />
+          Smart Farm Dashboard
         </h1>
       </div>
 
@@ -106,31 +167,100 @@ function Dashboard({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: "20px",
+          gridTemplateColumns: "2fr 1fr",
+          gap: "24px",
           marginBottom: "30px",
         }}
       >
-        <StatusBox
-          label="Normal"
-          sensors={statusGroups.normal}
-          color="#22c55e"
-        />
-        <StatusBox
-          label="Warning"
-          sensors={statusGroups.warning}
-          color="#f59e0b"
-        />
-        <StatusBox
-          label="Critical"
-          sensors={statusGroups.critical}
-          color="#ef4444"
-        />
-        <StatusBox
-          label="Sensors Online"
-          sensors={sensors}
-          color="#3b82f6"
-        />
+        <div
+          style={{
+            background: isDarkMode
+              ? "linear-gradient(135deg, #064e3b, #111827)"
+              : "linear-gradient(135deg, #d1fae5, #ffffff)",
+            borderRadius: "18px",
+            padding: "28px 32px",
+            boxShadow: isDarkMode
+              ? "0 12px 34px rgba(0,0,0,0.38)"
+              : "0 8px 24px rgba(5,150,105,0.18)",
+            border: isDarkMode ? "1px solid #14532d" : "1px solid #a7f3d0",
+          }}
+        >
+          <p
+            style={{
+              margin: "0 0 10px 0",
+              color: isDarkMode ? "#a7f3d0" : "#047857",
+              fontSize: "15px",
+              fontWeight: "700",
+            }}
+          >
+            Water Release / Day
+          </p>
+          <div style={{ display: "flex", alignItems: "baseline", gap: "10px" }}>
+            <span
+              style={{
+                fontSize: "56px",
+                lineHeight: 1,
+                fontWeight: "800",
+                color: theme?.text || "#064e3b",
+              }}
+            >
+              {waterPrediction?.waterReleasePerDay ?? "--"}
+            </span>
+            <span
+              style={{
+                color: theme?.muted || "#6b7280",
+                fontSize: "18px",
+                fontWeight: "700",
+              }}
+            >
+              per day
+            </span>
+          </div>
+        </div>
+
+        <div
+          style={{
+            background: theme?.cardBg || "#ffffff",
+            borderRadius: "18px",
+            padding: "24px",
+            boxShadow: isDarkMode
+              ? "0 10px 28px rgba(0,0,0,0.35)"
+              : "0 6px 20px rgba(0,0,0,0.06)",
+            border: isDarkMode ? "1px solid #1f2937" : "1px solid #e5e7eb",
+          }}
+        >
+          <p
+            style={{
+              margin: "0 0 10px 0",
+              color: theme?.muted || "#6b7280",
+              fontSize: "14px",
+              fontWeight: "700",
+            }}
+          >
+            Plant Age
+          </p>
+          <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
+            <span
+              style={{
+                fontSize: "34px",
+                lineHeight: 1,
+                fontWeight: "800",
+                color: theme?.text || "#1f2937",
+              }}
+            >
+              {farmSettings?.plantAgeDays ?? "--"}
+            </span>
+            <span
+              style={{
+                color: theme?.muted || "#6b7280",
+                fontSize: "16px",
+                fontWeight: "700",
+              }}
+            >
+              days
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* ✅ CRITICAL ALERT SECTION */}
@@ -159,6 +289,19 @@ function Dashboard({
       )}
 
       {/* ✅ SENSOR CARDS */}
+      {renderAlertSection({
+        title: "Warning Alert",
+        sensors: statusGroups.warning,
+        colors: {
+          bg: "#fef3c7",
+          border: "#fde68a",
+          text: "#92400e",
+          darkBg: "rgba(120, 53, 15, 0.32)",
+          darkBorder: "rgba(251, 191, 36, 0.45)",
+          darkText: "#fde68a",
+        },
+      })}
+
       {activeSection === "sensors" && (
         <div
           style={{
@@ -173,6 +316,7 @@ function Dashboard({
             unit="°C"
             prevValue={getPreviousAirValue("temperature")}
             thresholds={thresholds.temperature}
+            isDarkMode={isDarkMode}
           />
 
           <DashboardCard
@@ -181,6 +325,7 @@ function Dashboard({
             unit="%"
             prevValue={getPreviousAirValue("humidity")}
             thresholds={thresholds.humidity}
+            isDarkMode={isDarkMode}
           />
 
           <DashboardCard
@@ -189,6 +334,7 @@ function Dashboard({
             unit="ppm"
             prevValue={getPreviousAirValue("co2")}
             thresholds={thresholds.co2}
+            isDarkMode={isDarkMode}
           />
 
           {/* <DashboardCard
@@ -205,6 +351,7 @@ function Dashboard({
             unit="lux"
             prevValue={getPreviousAirValue("light")}
             thresholds={thresholds.light}
+            isDarkMode={isDarkMode}
           />
 
           <DashboardCard
@@ -213,19 +360,25 @@ function Dashboard({
             unit="%"
             prevValue={getPreviousSoilValue("soilMoisture")}
             thresholds={thresholds.soilMoisture}
+            isDarkMode={isDarkMode}
           />
+
         </div>
       )}
 
       {activeSection === "charts" && (
-        <Charts airHistory={airHistory} soilHistory={soilHistory} />
+        <Charts
+          airHistory={airHistory}
+          soilHistory={soilHistory}
+          isDarkMode={isDarkMode}
+        />
       )}
     </div>
   );
 }
 
 /* ✅ STATUS BOX WITH HOVER */
-function StatusBox({ label, sensors, color }) {
+function StatusBox({ label, sensors, color, isDarkMode, theme }) {
   const [hovered, setHovered] = useState(false);
 
   return (
@@ -233,11 +386,14 @@ function StatusBox({ label, sensors, color }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: "white",
+        background: theme?.cardBg || "white",
         borderRadius: "16px",
         padding: "20px",
-        boxShadow: "0 6px 20px rgba(0,0,0,0.05)",
+        boxShadow: isDarkMode
+          ? "0 10px 28px rgba(0,0,0,0.35)"
+          : "0 6px 20px rgba(0,0,0,0.05)",
         borderTop: `5px solid ${color}`,
+        border: isDarkMode ? "1px solid #1f2937" : "none",
         position: "relative",
         cursor: "pointer",
         transition: "all 0.3s ease",
@@ -258,7 +414,7 @@ function StatusBox({ label, sensors, color }) {
         style={{
           marginTop: "6px",
           fontWeight: "600",
-          color: "#6b7280",
+          color: theme?.muted || "#6b7280",
         }}
       >
         {label}
@@ -275,8 +431,12 @@ function StatusBox({ label, sensors, color }) {
             borderRadius: "16px",
             backdropFilter: "blur(14px)",
             WebkitBackdropFilter: "blur(14px)",
-            background: "rgba(255, 255, 255, 0.25)",
-            border: `1px solid rgba(255,255,255,0.4)`,
+            background: isDarkMode
+              ? "rgba(15, 23, 42, 0.88)"
+              : "rgba(255, 255, 255, 0.82)",
+            border: isDarkMode
+              ? "1px solid rgba(148,163,184,0.35)"
+              : "1px solid rgba(255,255,255,0.4)",
             boxShadow: "0 12px 30px rgba(0,0,0,0.15)",
             zIndex: 999,
           }}
@@ -300,6 +460,7 @@ function StatusBox({ label, sensors, color }) {
                 marginBottom: "8px",
                 display: "flex",
                 justifyContent: "space-between",
+                color: theme?.text || "#1f2937",
               }}
             >
               <span>{sensor.name}</span>

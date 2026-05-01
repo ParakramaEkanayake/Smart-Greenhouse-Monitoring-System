@@ -16,6 +16,12 @@ export const getAirHistory = () => API.get("/air/history");
 export const getLatestSoilData = () => API.get("/soil/latest");
 export const getSoilHistory = () => API.get("/soil/history");
 
+// -------------------
+// WATER PREDICTION
+// -------------------
+export const getWaterPrediction = (params = {}) =>
+  API.get("/water/predict", { params });
+
 // Existing functions...
 
 // Get thresholds

@@ -9,7 +9,7 @@ import {
   Legend,
 } from "recharts";
 
-function Charts({ airHistory, soilHistory }) {
+function Charts({ airHistory, soilHistory, isDarkMode = false }) {
   const chartConfigs = [
     {
       title: "🌡️ Temperature Trends",
@@ -35,14 +35,14 @@ function Charts({ airHistory, soilHistory }) {
       bgColor: "#d1fae5",
       source: "air",
     },
-    {
-      title: "🔬 NH₃ Trends",
-      // dataKey: "nh3",
-      color: "#f59e0b",
-      unit: "ppm",
-      bgColor: "#fef3c7",
-      source: "air",
-    },
+    // {
+    //   title: "🔬 NH₃ Trends",
+    //   // dataKey: "nh3",
+    //   color: "#f59e0b",
+    //   unit: "ppm",
+    //   bgColor: "#fef3c7",
+    //   source: "air",
+    // },
     {
       title: "💡 Light Intensity Trends",
       dataKey: "light",
@@ -71,7 +71,7 @@ function Charts({ airHistory, soilHistory }) {
           textAlign: "center",
           padding: "40px",
           fontSize: "18px",
-          color: "#666",
+          color: isDarkMode ? "#94a3b8" : "#666",
           fontWeight: "600",
         }}
       >
@@ -92,10 +92,13 @@ function Charts({ airHistory, soilHistory }) {
           <div
             key={index}
             style={{
-              background: config.bgColor,
+              background: isDarkMode ? "#111827" : config.bgColor,
               borderRadius: "16px",
               padding: "24px",
-              boxShadow: "0 5px 20px rgba(0, 0, 0, 0.1)",
+              boxShadow: isDarkMode
+                ? "0 10px 30px rgba(0, 0, 0, 0.35)"
+                : "0 5px 20px rgba(0, 0, 0, 0.1)",
+              border: isDarkMode ? "1px solid #1f2937" : "none",
             }}
           >
             <h3
@@ -114,30 +117,32 @@ function Charts({ airHistory, soilHistory }) {
               <LineChart data={data}>
                 <CartesianGrid
                   strokeDasharray="3 3"
-                  stroke="rgba(0,0,0,0.1)"
+                  stroke={isDarkMode ? "rgba(148,163,184,0.22)" : "rgba(0,0,0,0.1)"}
                 />
 
                 <XAxis
                   dataKey="time"
-                  tick={{ fontSize: 12, fill: "#666" }}
+                  tick={{ fontSize: 12, fill: isDarkMode ? "#94a3b8" : "#666" }}
                 />
 
                 <YAxis
-                  tick={{ fontSize: 12, fill: "#666" }}
+                  tick={{ fontSize: 12, fill: isDarkMode ? "#94a3b8" : "#666" }}
                   label={{
                     value: config.unit,
                     angle: -90,
                     position: "insideLeft",
+                    fill: isDarkMode ? "#94a3b8" : "#666",
                   }}
                 />
 
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "#ffffff",
+                    backgroundColor: isDarkMode ? "#0f172a" : "#ffffff",
                     border: `2px solid ${config.color}`,
                     borderRadius: "8px",
                     boxShadow:
                       "0 5px 15px rgba(0, 0, 0, 0.2)",
+                    color: isDarkMode ? "#e5e7eb" : "#111827",
                   }}
                   formatter={(value) => [
                     value !== null &&

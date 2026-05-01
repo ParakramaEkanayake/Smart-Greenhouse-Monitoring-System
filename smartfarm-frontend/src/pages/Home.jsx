@@ -4,11 +4,13 @@ import {
   getAirHistory,
   getLatestSoilData,
   getSoilHistory,
+  getWaterPrediction,
 } from "../services/api";
 
 import Dashboard from "../components/Dashboard";
 import Charts from "../components/Charts";
 import ThresholdSettings from "./ThresholdSettings";
+import { checkSensorStatus } from "../utils/statusUtils";
 
 const defaultThresholds = {
   temperature: { min: 15, max: 30 },
@@ -19,25 +21,43 @@ const defaultThresholds = {
   soilMoisture: { min: 35, max: 65 },
 };
 
+const defaultFarmSettings = {
+  plantAgeDays: 1,
+  cropType: "Capsicum",
+};
+
 function Home() {
   const [activePage, setActivePage] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(
+    () => localStorage.getItem("darkMode") === "true"
+  );
 
   const [airData, setAirData] = useState(null);
   const [soilData, setSoilData] = useState(null);
   const [airHistory, setAirHistory] = useState([]);
   const [soilHistory, setSoilHistory] = useState([]);
+  const [waterPrediction, setWaterPrediction] = useState(null);
   const [thresholds, setThresholds] = useState(defaultThresholds);
+  const [farmSettings, setFarmSettings] = useState(defaultFarmSettings);
 
   // ✅ Load thresholds from localStorage
   useEffect(() => {
     const saved = localStorage.getItem("sensorThresholds");
     if (saved) setThresholds(JSON.parse(saved));
 
+    const savedFarmSettings = localStorage.getItem("farmSettings");
+    if (savedFarmSettings) setFarmSettings(JSON.parse(savedFarmSettings));
+
     fetchData();
     const interval = setInterval(fetchData, 300000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("darkMode", String(isDarkMode));
+    document.documentElement.dataset.theme = isDarkMode ? "dark" : "light";
+  }, [isDarkMode]);
 
   const fetchData = async () => {
     try {
@@ -75,6 +95,21 @@ function Home() {
             soilMoisture: item.soilMoisture,
           }))
       );
+
+      try {
+        const currentFarmSettings = JSON.parse(
+          localStorage.getItem("farmSettings") ||
+            JSON.stringify(defaultFarmSettings)
+        );
+        const waterPred = await getWaterPrediction({
+          crop: currentFarmSettings.cropType,
+          day: currentFarmSettings.plantAgeDays,
+        });
+        setWaterPrediction(waterPred.data);
+      } catch (predictionError) {
+        console.error("Error fetching water prediction:", predictionError);
+        setWaterPrediction(null);
+      }
     } catch (error) {
       console.error("Error fetching sensor data:", error);
     }
@@ -88,8 +123,66 @@ function Home() {
     setThresholds(newThresholds);
   };
 
+  const handleFarmSettingsSave = (newFarmSettings) => {
+    localStorage.setItem("farmSettings", JSON.stringify(newFarmSettings));
+    setFarmSettings(newFarmSettings);
+    fetchData();
+  };
+
   if (!airData && !soilData)
     return <div>Waiting for sensor data...</div>;
+
+  const theme = {
+    pageBg: isDarkMode ? "#0f172a" : "#f5f7fb",
+    sidebarBg: isDarkMode
+      ? "linear-gradient(135deg, #0f177a, #042f2e)"
+      : "linear-gradient(135deg, #cbe6ef, #0f766e)",
+    text: isDarkMode ? "#e5e7eb" : "#1f2937",
+    muted: isDarkMode ? "#94a3b8" : "#6b7280",
+    cardBg: isDarkMode ? "#111827" : "#ffffff",
+    cardBorder: isDarkMode ? "#1f2937" : "#e5e7eb",
+    softBg: isDarkMode ? "#1e293b" : "#ffffff",
+    inputBg: isDarkMode ? "#0f172a" : "#ffffff",
+  };
+
+  const sensors = [
+    {
+      name: "Temperature",
+      value: airData?.temperature_dht,
+      thresholds: thresholds.temperature,
+    },
+    {
+      name: "Humidity",
+      value: airData?.humidity,
+      thresholds: thresholds.humidity,
+    },
+    {
+      name: "CO2",
+      value: airData?.co2_ppm,
+      thresholds: thresholds.co2,
+    },
+    {
+      name: "Light",
+      value: airData?.light_lux,
+      thresholds: thresholds.light,
+    },
+    {
+      name: "Soil",
+      value: soilData?.soilMoisture,
+      thresholds: thresholds.soilMoisture,
+    },
+  ];
+
+  const statusGroups = {
+    normal: [],
+    warning: [],
+    critical: [],
+  };
+
+  sensors.forEach((sensor) => {
+    const status = checkSensorStatus(Number(sensor.value), sensor.thresholds);
+    if (statusGroups[status]) statusGroups[status].push(sensor);
+  });
 
   const getNavStyle = (page) => ({
     display: "block",
@@ -107,7 +200,7 @@ function Home() {
     background:
       activePage === page
         ? "rgba(255,255,255,0.9)"
-        : "linear-gradient(135deg, #14b8a6, #0f766e)",
+        : theme.sidebarBg,
     backdropFilter:
       activePage === page ? "blur(10px)" : "none",
     WebkitBackdropFilter:
@@ -119,7 +212,14 @@ function Home() {
   });
 
   return (
-    <div style={{ minHeight: "100vh" }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        background: theme.pageBg,
+        color: theme.text,
+        transition: "background 0.25s ease, color 0.25s ease",
+      }}
+    >
 
       {/* ✅ Sidebar */}
       {sidebarOpen && (
@@ -127,7 +227,7 @@ function Home() {
           style={{
             width: "240px",
             height: "100vh",
-            background: "linear-gradient(135deg, #14b8a6, #0f766e)",
+            background: theme.sidebarBg,
             color: "white",
             padding: "30px 20px",
             position: "fixed",     // ✅ Important
@@ -138,8 +238,28 @@ function Home() {
             zIndex: 999,
           }}
         >
-          <h2 style={{ marginBottom: "30px" }}>🌾 Smart Farm</h2>
-
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              marginBottom: "30px",
+            }}
+          >
+            <img
+              src="/logo-removebg-preview.png"
+              alt="Smart Farm logo"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+              style={{
+                width: "50px",
+                height: "50px",
+                objectFit: "contain",
+              }}
+            />
+            <h2 style={{ margin: 0 }}>Smart Farm</h2>
+          </div>
           <button
             onClick={() => setActivePage("dashboard")}
             style={getNavStyle("dashboard")}
@@ -211,6 +331,90 @@ function Home() {
           >
             Threshold Settings
           </button>
+
+          <div
+            style={{
+              marginTop: "22px",
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "10px",
+              paddingBottom: "84px",
+            }}
+          >
+            <SidebarStatusCard
+              label="Normal"
+              value={statusGroups.normal.length}
+              color="#22c55e"
+            />
+            <SidebarStatusCard
+              label="Warning"
+              value={statusGroups.warning.length}
+              color="#f59e0b"
+            />
+            <SidebarStatusCard
+              label="Critical"
+              value={statusGroups.critical.length}
+              color="#ef4444"
+            />
+            <SidebarStatusCard
+              label="Online"
+              value={sensors.length}
+              color="#3b82f6"
+            />
+          </div>
+
+          <div
+            style={{
+              position: "absolute",
+              left: "20px",
+              right: "20px",
+              bottom: "24px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "12px",
+              padding: "10px 12px",
+              borderRadius: "14px",
+              border: "1px solid rgba(255,255,255,0.28)",
+              background: "rgba(255,255,255,0.12)",
+            }}
+          >
+            <span style={{ fontSize: "13px", fontWeight: "700" }}>
+              Dark Mode
+            </span>
+            <button
+              type="button"
+              aria-pressed={isDarkMode}
+              aria-label="Toggle dark mode"
+              onClick={() => setIsDarkMode((current) => !current)}
+              style={{
+                width: "44px",
+                height: "24px",
+                padding: "2px",
+                border: "none",
+                borderRadius: "999px",
+                background: isDarkMode
+                  ? "rgba(34,197,94,0.95)"
+                  : "rgba(255,255,255,0.38)",
+                cursor: "pointer",
+                display: "flex",
+                justifyContent: isDarkMode ? "flex-end" : "flex-start",
+                alignItems: "center",
+                transition: "background 0.2s ease",
+              }}
+            >
+              <span
+                style={{
+                  width: "20px",
+                  height: "20px",
+                  borderRadius: "50%",
+                  background: "#ffffff",
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.25)",
+                  display: "block",
+                }}
+              />
+            </button>
+          </div>
         </div>
       )}
 
@@ -236,7 +440,7 @@ function Home() {
             borderRadius: "14px",
             border: "none",
             cursor: "pointer",
-            background: "linear-gradient(135deg, #14b8a6, #0f766e)",
+            background: theme.sidebarBg,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -302,9 +506,13 @@ function Home() {
           <Dashboard
             airData={airData}
             soilData={soilData}
+            waterPrediction={waterPrediction}
             airHistory={airHistory}
             soilHistory={soilHistory}
             thresholds={thresholds}
+            farmSettings={farmSettings}
+            isDarkMode={isDarkMode}
+            theme={theme}
           />
         )}
 
@@ -312,6 +520,7 @@ function Home() {
           <Charts
             airHistory={airHistory}
             soilHistory={soilHistory}
+            isDarkMode={isDarkMode}
           />
         )}
 
@@ -319,6 +528,10 @@ function Home() {
           <ThresholdSettings
             thresholds={thresholds}
             onSave={handleThresholdSave}
+            farmSettings={farmSettings}
+            onFarmSettingsSave={handleFarmSettingsSave}
+            isDarkMode={isDarkMode}
+            theme={theme}
           />
         )}
       </div>
@@ -338,5 +551,41 @@ const navStyle = {
   fontWeight: "600",
   cursor: "pointer",
 };
+
+function SidebarStatusCard({ label, value, color }) {
+  return (
+    <div
+      style={{
+        background: "rgba(255,255,255,0.16)",
+        border: "1px solid rgba(255,255,255,0.22)",
+        borderRadius: "12px",
+        padding: "10px",
+        minHeight: "62px",
+      }}
+    >
+      <div
+        style={{
+          fontSize: "24px",
+          lineHeight: 1,
+          fontWeight: "800",
+          color,
+          textShadow: "0 1px 10px rgba(0,0,0,0.18)",
+        }}
+      >
+        {value}
+      </div>
+      <div
+        style={{
+          marginTop: "6px",
+          fontSize: "12px",
+          fontWeight: "700",
+          color: "white",
+        }}
+      >
+        {label}
+      </div>
+    </div>
+  );
+}
 
 export default Home;

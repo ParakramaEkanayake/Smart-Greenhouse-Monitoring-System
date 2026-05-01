@@ -16,6 +16,13 @@ html, body, #root {
   font-family: Calibri, 'Segoe UI', sans-serif;
 }
 
+html[data-theme="dark"],
+html[data-theme="dark"] body,
+html[data-theme="dark"] #root {
+  background-color: #0f172a;
+  color: #e5e7eb;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
