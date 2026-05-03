@@ -258,7 +258,7 @@ function Home() {
                 objectFit: "contain",
               }}
             />
-            <h2 style={{ margin: 0 }}>Smart Farm</h2>
+            <h2 style={{ margin: 0 }}>PolyAnalytics</h2>
           </div>
           <button
             onClick={() => setActivePage("dashboard")}

@@ -159,7 +159,7 @@ function Dashboard({
               objectFit: "contain",
             }}
           />
-          Smart Farm Dashboard
+          PolyAnalytics Dashboard
         </h1>
       </div>
 
